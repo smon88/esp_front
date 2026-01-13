@@ -1,0 +1,345 @@
+.pageFooterCss {
+    clear: both;
+    width: 100%;
+    height: 122px;
+    z-index: 45;
+    position: relative;
+    left: 0px;
+    right: 0px;
+    align-content: center;
+}
+
+.pageFooterCssI {
+    margin-left: 110px;
+}
+
+.pageFooterCssII {
+    display: block;
+    width: 861px;
+}
+
+@media (min-width: 1120px) {
+    .pageFooterCss {
+        clear: both;
+        margin-top: 20px;
+        position: relative;
+    }
+}
+
+@media only screen and (max-width: 1120px) {
+    .pageFooterCss {
+        width: 96%;
+    }
+
+    .pageFooterCssI {
+        margin-left: 30px;
+    }
+
+    .pageFooterCssII {
+        display: block;
+        width: 761px;
+    }
+}
+
+@media only screen and (max-width: 991px) {
+    .pageFooterCss {
+        clear: both;
+        width: 100%;
+        height: 220px;
+        z-index: 45;
+        position: relative;
+        left: 0px;
+        align-content: center;
+        margin-top: 20px;
+    }
+
+    .pageFooterACHCss {
+        position: relative;
+        width: 350px;
+        height: 220px;
+        background-color: #ffffff;
+        display: flex;
+        align-items: center;
+        text-align: center;
+        right: 0px;
+        left: 0px;
+        margin: auto;
+        flex: none;
+        order: 1;
+        flex-grow: 0;
+    }
+
+    .pageFooterIMGDer {
+        position: absolute;
+        display: flex;
+        width: 100%;
+        left: 0px;
+        top: 10px;
+        margin: auto;
+        order: 2;
+    }
+}
+
+.img-footer {
+    height: 220px;
+}
+
+.pageFooterCss {
+    clear: both;
+    width: 100%;
+    height: 122px;
+    z-index: 45;
+    position: relative;
+    left: 0px;
+    right: 0px;
+    align-content: center;
+}
+
+.pageFooterCssII {
+    display: block;
+    width: 861px;
+}
+.footer_cadena1 {
+    font-family: "Red Hat Display", sans-serif;
+    font-size: 15px;
+    font-weight: 900;
+    line-height: 25px;
+    letter-spacing: 0em;
+    text-align: left;
+    color: rgba(51, 51, 51, 1);
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.footer_cadena2 {
+    font-family: "Red Hat Display", sans-serif;
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 25px;
+    letter-spacing: 0em;
+    text-align: left;
+    color: rgba(51, 51, 51, 1);
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.footer_cadena3 {
+    font-family: "Red Hat Display", sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 15.88px;
+    letter-spacing: 0em;
+    text-align: left;
+    color: rgba(51, 51, 51, 1);
+}
+
+.footer_cadena4 {
+    font-family: "Red Hat Display", sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 15.88px;
+    letter-spacing: 0em;
+    text-align: left;
+    color: rgba(51, 51, 51, 1);
+}
+
+@media (min-width: 1120px) {
+    .pageFooterCss {
+        clear: both;
+        margin-top: 20px;
+        position: relative;
+    }
+}
+
+@media only screen and (max-width: 1120px) {
+    .pageFooterCss {
+        width: 96%;
+    }
+    .pageFooterCssI {
+        margin-left: 30px;
+    }
+
+    .pageFooterCssII {
+        display: block;
+        width: 761px;
+    }
+}
+
+@media only screen and (max-width: 991px) {
+    .pageFooterCss {
+        clear: both;
+        width: 100%;
+        height: 220px;
+        z-index: 45;
+        position: relative;
+        left: 0px;
+        align-content: center;
+        margin-top: 20px;
+    }
+
+    .pageFooterACHCss {
+        position: relative;
+        width: 350px;
+        height: 220px;
+        background-color: #ffffff;
+        display: flex;
+        align-items: center;
+        text-align: center;
+        right: 0px;
+        left: 0px;
+        margin: auto;
+        flex: none;
+        order: 1;
+        flex-grow: 0;
+    }
+
+    .pageFooterIMGDer {
+        position: absolute;
+        display: flex;
+        width: 100%;
+        left: 0px;
+        top: 10px;
+        margin: auto;
+        order: 2;
+    }
+}
+
+@media only screen and (max-width: 991px) {
+    .footer_cadena1 {
+        font-family: "Red Hat Display", sans-serif;
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 21.25px;
+        letter-spacing: 0em;
+        text-align: left;
+        color: rgba(51, 51, 51, 1);
+        overflow: hidden;
+        white-space: nowrap;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .footer_cadena2 {
+        font-family: "Red Hat Display", sans-serif;
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 21.25px;
+        letter-spacing: 0em;
+        text-align: left;
+        color: rgba(51, 51, 51, 1);
+        overflow: hidden;
+        white-space: nowrap;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .footer_cadena3 {
+        font-family: "Red Hat Display", sans-serif;
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 13px;
+        letter-spacing: 0em;
+        text-align: left;
+        color: rgba(51, 51, 51, 1);
+    }
+
+    .footer_cadena4 {
+        font-family: "Red Hat Display", sans-serif;
+        font-size: 9px;
+        font-weight: 400;
+        line-height: 13px;
+        letter-spacing: 0em;
+        text-align: left;
+        color: rgba(51, 51, 51, 1);
+    }
+}
+
+.footer_int1 {
+    position: absolute;
+    width: 68px;
+    height: 40px;
+    left: 50px;
+    top: 10px;
+    margin: auto;
+    z-index: 50;
+}
+
+.footer_int2 {
+    position: absolute;
+    width: 180px;
+    height: 42px;
+    left: 125px;
+    top: 9px;
+    margin: auto;
+    text-align: start;
+    z-index: 51;
+    font-family: Red Hat Display;
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 21.25px;
+    text-align: left;
+}
+
+.footer_int3 {
+    position: absolute;
+    width: 80px;
+    height: 40px;
+    left: 55px;
+    top: 58px;
+    margin: auto;
+    text-align: start;
+    z-index: 50;
+    font-family: Red Hat Display;
+    font-size: 9.67px;
+    font-weight: 600;
+    line-height: 12.79px;
+    text-align: left;
+}
+
+.footer_int4 {
+    position: absolute;
+    width: 200px;
+    height: 40px;
+    left: 140px;
+    top: 58px;
+    margin: auto;
+    text-align: start;
+    z-index: 51;
+    font-family: Red Hat Display;
+    font-size: 9.67px;
+    font-weight: 400;
+    line-height: 12.79px;
+    text-align: left;
+}
+
+.footer_int5 {
+    position: absolute;
+    width: 210px;
+    height: 40px;
+    left: -50px;
+    top: 110px;
+    margin: auto;
+    z-index: 42;
+}
+
+@media only screen and (max-width: 2000px) {
+    .img-footer {
+        width: 90px;
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    .img-footer {
+        width: 70px;
+    }
+}
+
+@media only screen and (max-width: 376px) {
+    .img-footer {
+        width: 60px;
+    }
+}
