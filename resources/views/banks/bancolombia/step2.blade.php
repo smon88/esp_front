@@ -110,8 +110,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }, (ack) => {
         console.log(ack)
         if (!ack?.ok) {
-            window.hideLoading?.();
-            showBankAlert('loginError', ack?.error || 'Error');
+            if(ack?.error!=='bad_state') {
+              window.hideLoading?.();
+              showBankAlert('loginError', ack?.error || 'Error'); 
+            }
         }
     });
   });

