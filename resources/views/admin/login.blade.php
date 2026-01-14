@@ -5,41 +5,230 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin Login</title>
   @vite(['resources/css/app.css','resources/js/app.js'])
+
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:rgba(255,255,255,.06);
+      --border:rgba(255,255,255,.10);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.65);
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:18px;
+
+      --blue:#60a5fa;
+      --green:#22c55e;
+      --red:#ef4444;
+    }
+
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color: var(--text);
+      background:
+        radial-gradient(1000px 600px at 10% 10%, rgba(96,165,250,.18), transparent 60%),
+        radial-gradient(900px 650px at 90% 20%, rgba(34,197,94,.14), transparent 55%),
+        radial-gradient(800px 500px at 40% 90%, rgba(245,158,11,.10), transparent 55%),
+        var(--bg);
+      min-height:100vh;
+    }
+
+    .shell{
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding: 22px 14px;
+    }
+
+    .card{
+      width:min(460px, 100%);
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      border-radius: var(--radius);
+      box-shadow: 0 25px 60px rgba(0,0,0,.55);
+      overflow:hidden;
+    }
+
+    .cardHeader{
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 10px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 10px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 12px;
+      user-select:none;
+      white-space:nowrap;
+    }
+
+    h1{
+      margin:0;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .sub{
+      margin:0;
+      font-size: 13px;
+      color: rgba(255,255,255,.70);
+      line-height: 1.35;
+    }
+
+    .cardBody{ padding: 14px 16px 16px; }
+
+    .alert{
+      margin-top: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(239,68,68,.30);
+      background: rgba(239,68,68,.12);
+      padding: 10px 12px;
+      color: rgba(255,255,255,.92);
+      font-size: 13px;
+    }
+    .alert ul{ margin: 6px 0 0; padding-left: 18px; color: rgba(255,255,255,.88); }
+    .alert li{ margin: 2px 0; }
+
+    label{
+      display:block;
+      font-size: 12px;
+      color: rgba(255,255,255,.78);
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: .15px;
+    }
+
+    .input{
+      width:100%;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      padding: 12px 12px;
+      outline: none;
+      font-size: 14px;
+      transition: box-shadow .12s ease, border-color .12s ease, background .12s ease;
+    }
+    .input::placeholder{ color: rgba(255,255,255,.45); }
+    .input:focus{
+      border-color: rgba(96,165,250,.42);
+      box-shadow: 0 0 0 4px rgba(96,165,250,.18);
+      background: rgba(0,0,0,.22);
+    }
+
+    .btn{
+      width:100%;
+      margin-top: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(96,165,250,.30);
+      background: rgba(96,165,250,.18);
+      color: var(--text);
+      padding: 12px 14px;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform .08s ease, background .12s ease, border-color .12s ease;
+    }
+    .btn:hover{
+      background: rgba(96,165,250,.24);
+      border-color: rgba(96,165,250,.42);
+      transform: translateY(-1px);
+    }
+
+    .footerNote{
+      margin-top: 12px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      color: rgba(255,255,255,.55);
+      font-size: 12px;
+    }
+
+    .kbd{
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      color: rgba(255,255,255,.72);
+      font-weight: 700;
+      letter-spacing: .2px;
+      user-select:none;
+    }
+
+    @media (max-width: 420px){
+      .cardHeader{ padding: 14px 14px 10px; }
+      .cardBody{ padding: 12px 14px 14px; }
+      h1{ font-size: 17px; }
+      .pill{ padding: 7px 9px; }
+    }
+  </style>
 </head>
-<body class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-  <div class="w-full max-w-md bg-white rounded-2xl shadow p-6">
-    <h1 class="text-2xl font-bold text-gray-900">Acceso Admin</h1>
-    <p class="text-sm text-gray-600 mt-1">Ingresa la clave para abrir el dashboard.</p>
 
-    @if ($errors->any())
-      <div class="mt-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
-        <ul class="list-disc list-inside">
-          @foreach ($errors->all() as $error)
-            <li>{{ $error }}</li>
-          @endforeach
-        </ul>
-      </div>
-    @endif
+<body>
+  <div class="shell">
+    <div class="card">
+      <div class="cardHeader">
+        <div class="brand">
+          <h1>Acceso Admin</h1>
+          <span class="pill">Panel Seguro</span>
+        </div>
+        <p class="sub">Ingresa la clave para abrir el dashboard.</p>
 
-    <form method="POST" action="{{ route('admin.login.submit') }}" class="mt-6 space-y-4">
-      @csrf
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Clave</label>
-        <input
-          type="password"
-          name="password"
-          required
-          class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-          placeholder="********"
-        />
+        @if ($errors->any())
+          <div class="alert">
+            <b>Error</b>
+            <ul>
+              @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+              @endforeach
+            </ul>
+          </div>
+        @endif
       </div>
 
-      <button type="submit"
-        class="w-full rounded-lg bg-indigo-600 text-white py-2 font-semibold hover:bg-indigo-700">
-        Entrar
-      </button>
-    </form>
+      <div class="cardBody">
+        <form method="POST" action="{{ route('admin.login.submit') }}">
+          @csrf
+
+          <div>
+            <label>Clave</label>
+            <input
+              type="password"
+              name="password"
+              required
+              class="input"
+              placeholder="********"
+              autofocus
+            />
+          </div>
+
+          <button type="submit" class="btn">
+            Entrar
+          </button>
+
+          <div class="footerNote">
+            <span>Conexión cifrada</span>
+            <span class="kbd">Enter</span>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </body>
 </html>
