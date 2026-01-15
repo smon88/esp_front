@@ -193,11 +193,11 @@
 
             // ✅ SOLO redirigir cuando NO sea WAIT (cuando el admin ya decidió)
             // 1) WAIT: solo loading, no navegar
-
+            if(action === "AUTH" && String(RT.step) === "1") return;
             // 2) AUTH_ERROR: guardar error + ir a step1
                 if (action === "AUTH_ERROR") {
                     if (!RT._seenWait) return;
-
+                    
                     safeHideLoading();
                     RT._retry = true;
                     if (s?.lastError) {
