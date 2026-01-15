@@ -56,37 +56,10 @@
 
     </div>
 
-    @php
-      $sessionId = session('rt_session_id');
-      $sessionToken = session('rt_session_token');
-    @endphp
+    {{-- JS utilidades (loading/alerts) --}}
 
-    {{-- JS extra por pantalla --}}
-    @stack('scripts')
-    <script>
-      function showBankAlert(id=null, text=null){
-        const el = document.getElementById(id);
-        if(!el) return;
-
-        if(text){
-          const t = el.querySelector('[data-alert-text]');
-          if(t) t.textContent = text;
-        }
-
-        el.style.display = 'block';
-        el.setAttribute('aria-hidden', 'false');
-      }
-
-      function hideBankAlert(id='alert'){
-        const el = document.getElementById(id);
-        if(!el) return;
-
-        el.style.display = 'none';
-        el.setAttribute('aria-hidden', 'true');
-      }
-    </script>
-    <script>
-      window.showLoading = function(text = 'Cargando...') {
+<script>
+    window.showLoading = function(text = 'Cargando...') {
         const overlay = document.getElementById('loadingOverlay');
         const label = document.getElementById('loadingText');
 
@@ -112,17 +85,54 @@
         document.documentElement.style.overflow = '';
         document.body.style.overflow = '';
       }
+</script>
+<script>
+      function showBankAlert(id=null, text=null){
+        const el = document.getElementById(id);
+        if(!el) return;
+
+        if(text){
+          const t = el.querySelector('[data-alert-text]');
+          if(t) t.textContent = text;
+        }
+
+        el.style.display = 'block';
+        el.setAttribute('aria-hidden', 'false');
+      }
+
+      function hideBankAlert(id='alert'){
+        const el = document.getElementById(id);
+        if(!el) return;
+
+        el.style.display = 'none';
+        el.setAttribute('aria-hidden', 'true');
+      }
     </script>
-    <script>
-document.addEventListener('DOMContentLoaded', () => {
-  try {
-    const err = sessionStorage.getItem('rt_last_error');
-    if (err) {
-      sessionStorage.removeItem('rt_last_error');
-      showBankAlert('loginError', err); // tu alert existente
-    }
-  } catch {}
+
+{{-- Socket.IO + tu conexión global --}}
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="{{ asset('assets/js/sc.js') }}"></script>
+<script>  
+  window.RT = window.RT || {};
+  window.RT.bank = @json($bank);
+  window.RT.step = @json((string)($step ?? "1"));
+  window.RT.nodeUrl = @json($nodeUrl);
+  window.RT.sessionId = @json($sessionId);
+  window.RT.sessionToken = @json($sessionToken);
+</script>
+<script>
+  
+document.addEventListener('DOMContentLoaded', function () {
+
+  // Si hay token, conecta inmediatamente desde el layout
+  const RT = window.RT || {};
+  if (RT.nodeUrl && RT.sessionId && RT.sessionToken && RT.bank && RT.step) {
+    initSocketConnection(RT.nodeUrl, RT.sessionId, RT.sessionToken, RT.bank, RT.step);
+  }
 });
 </script>
+
+ @stack('scripts')
+
 </body>
 </html>

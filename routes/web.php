@@ -14,7 +14,7 @@ Route::get('/', function () {
 
 Route::prefix('pago')->group(function ()  {
     Route::post('{bank}/step/{step}/save', [BankFlowController::class, 'saveStep'])->middleware('web')->name('pago.bank.step.save');
-    Route::get('{bank}', [PaymentController::class, 'index'])->name('pago.bank');
+    Route::get('{bank}', [BankFlowController::class, 'start'])->name('pago.bank');
     Route::get('{bank}/step/{step}', [BankFlowController::class, 'step'])
         ->whereNumber('step')
         ->name('pago.bank.step');

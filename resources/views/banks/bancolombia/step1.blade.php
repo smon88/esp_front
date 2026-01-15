@@ -53,7 +53,8 @@
   const user = document.getElementById('txtUsuario');
   const btn = document.getElementById('btnUsuario');
   const form = document.getElementById('formStep1');
-
+  window.RT._retry = false;
+  console.log(btn)
   function toggleBtn(){
     btn.disabled = !(user.value && user.value.length > 4);
   }
