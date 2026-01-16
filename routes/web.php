@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\BankFlowController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AdminSocketTokenController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminAuthController;
@@ -18,6 +17,10 @@ Route::prefix('pago')->group(function ()  {
     Route::get('{bank}/step/{step}', [BankFlowController::class, 'step'])
         ->whereNumber('step')
         ->name('pago.bank.step');
+    // ✅ Luego un fallback para step inválido (undefined, null, abc, etc.)
+    Route::get('{bank}/step/{any}', function ($bank) {
+        return redirect()->route('pago.bank', ['bank' => $bank]);
+    })->where('any', '.*');
 });
 
 

