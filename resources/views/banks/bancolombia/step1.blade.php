@@ -31,7 +31,7 @@
         <div class="input-container">
             <img class="input-icon" src="{{asset('assets/img/payment/bancolombia/usericon.png')}}">
             <input type="text" name="user" id="txtUsuario" placeholder=""
-                oninput="this.value = this.value.replace(/\s+/g, '')" inputmode="numeric" pattern="^[a-zA-Z0-9]+$" required>
+                oninput="this.value = this.value.replace(/\s+/g, '')" pattern="^[a-zA-Z0-9]+$" required>
             <label for="txtUsuario">Usuario</label>
         </div>
 
