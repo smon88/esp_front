@@ -303,3 +303,79 @@ select#txtBank {
   background: #ffb000;
   color: #fff;
 }
+
+
+
+/* FINISH SCREEN */
+
+.finish-container {
+    height: fit-content;
+    background: linear-gradient(0deg, #fff, #f5f5f5 86%, #f73);
+}
+
+.finish-main-card, .finish-detail-card, .finish-reference-card, .foot-alert-card
+ {
+    display: flex;
+    margin: 12px 33px;
+    padding: 21px;
+    background: #ffffff;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .12);
+}
+
+.main-card-container {
+    display: flex;
+}
+
+.main-card-logo {
+    display: flex;
+    width: 21%;
+    flex-direction: row-reverse;
+}
+
+img.finish-logo {
+    width: 100%;
+    border-radius: 100%;
+    border: 2px solid #f73;
+}
+
+.finish-logo-icon {
+    position: absolute;
+}
+
+.main-card-text h1 {
+    font-size: 2rem;
+}
+
+.main-card-text h1 {
+    color: #191919;
+    font-size: 2rem;
+}
+
+
+.main-card-text span {
+    color: #212121;
+}
+.payment-reference {
+    display: flex;
+}
+
+.reference-text, .finish-detail-card, .payment-date, .payment-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.payment-date {
+    margin-bottom: 3rem;
+}
+.payment-date, .payment-details {
+    padding: 6px;
+}
+
+.foot-alert-card {
+    border-left: solid 2px #f73;
+}
+
+.commerce {
+    white-space: pre;
+}

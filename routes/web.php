@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [PaymentController::class, 'index'])->name('home');
 Route::get('/pago', [PaymentController::class, 'index'])->name('pago.home');
 
+Route::get('/pago/resultado', [PaymentController::class, 'finish'])->name('pago.result');
+
 
 Route::prefix('pago')->group(function ()  {
     // ✅ endpoint para MAIN FLOW

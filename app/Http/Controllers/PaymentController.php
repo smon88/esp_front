@@ -50,6 +50,21 @@ class PaymentController extends Controller
         ]);
     }
 
+     // ✅ Render finish screen pasando datos de pago
+    public function finish(Request $request)
+    {
+        $sc = (array) $request->session()->get('sc', []);
+
+        $view = "layouts.finish";
+        abort_if(!View::exists($view), 404);
+
+        return view($view, [
+            'origin' => Arr::get($sc, 'session_origin') ?? null,
+            'details' => Arr::get($sc, 'pd'), //payment details
+        ]);
+    }
+
+
     // ======= PRIVATE =======
     private function ensureRealtimeSessionGeneral(Request $request): void
     {
