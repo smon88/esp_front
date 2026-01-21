@@ -14,12 +14,6 @@
       'type' => 'error_field',
       'show' => false,
     ])
-    @include('components.alert', [
-      'id' => 'success',
-      'type' => 'success',
-      'show' => false,
-    ])
-
 
 @section('content')
   <div class="step-process">
