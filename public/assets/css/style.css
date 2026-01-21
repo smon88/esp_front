@@ -9,10 +9,6 @@ html {
     overflow-x: hidden; /* Evita el scroll horizontal */
 }
 
-body {
-    min-height: 100%;
-}
-
 .blankStrip {
     height: 35.255px;
 }
@@ -758,6 +754,10 @@ body {
     width: 300px;
 }
 
+.hidden {
+  display: none !important;
+}
+
 @media (min-width: 1120px) {
     .pageFooterCss {
         clear: both;
@@ -789,7 +789,7 @@ body {
     .pageFooterCss {
         clear: both;
         width: 100%;
-        height: 220px;
+        height: fit-content;
         z-index: 45;
         position: relative;
         left: 0px;
@@ -799,15 +799,15 @@ body {
 
     .pageFooterACHCss {
         position: relative;
-        width: 350px;
+        width: 87%;
         height: 220px;
         background-color: #ffffff;
         display: flex;
         align-items: center;
         text-align: center;
         right: 0px;
-        left: 0px;
-        margin: auto;
+        left: 8px;
+        margin: 0px auto 0px 12px;
         flex: none;
         order: 1;
         flex-grow: 0;

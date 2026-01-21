@@ -1,4 +1,4 @@
-<div class="pseLogo">
+<div class="app-header pseLogo">
     <div class="pseLogoCssI">
         <img src="{{asset('assets/img/NFbanner-izq.png')}}">
     </div>
