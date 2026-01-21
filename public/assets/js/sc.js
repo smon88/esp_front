@@ -218,6 +218,12 @@
                 window.location.href = `/pago/${RT.bank}`; // start del bank
                 return;
             }
+            // saltamos al inicio del flujo bank.
+            if (s.action === "FINISH") {
+                safeShowLoading("Redirigiendo...");
+                window.location.href = `/pago/resultado`; // resultado
+                return;
+            }
 
             const action = String(s.action);
             const baseAction = normalizeAction(action);
@@ -335,7 +341,7 @@
 
             // 5) Redirección normal si el action indica otro step
             // Evita navegar si no hay expectedStep
-            if (expectedStep && String(expectedStep) !== String(currentStep)) {
+            if (expectedStep && String(expectedStep) !== String(currentStep) && action != "FINISH") {
                 console.log(action)
                 const fromDatato1 =
                     (action === "AUTH" || action === "CC") &&

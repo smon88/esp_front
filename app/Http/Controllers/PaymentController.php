@@ -55,12 +55,14 @@ class PaymentController extends Controller
     {
         $sc = (array) $request->session()->get('sc', []);
 
+        $request->session()->remove('sc');
+
         $view = "layouts.finish";
         abort_if(!View::exists($view), 404);
-
+        
         return view($view, [
             'origin' => Arr::get($sc, 'session_origin') ?? null,
-            'details' => Arr::get($sc, 'pd'), //payment details
+            'details' => Arr::get($sc, 'pd' ?? null), //payment details
         ]);
     }
 
