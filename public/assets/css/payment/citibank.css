@@ -1,0 +1,14 @@
+ *{
+    -webkit-appearance: none;
+    -webkit-border-radius: 0;
+}
+label{
+    display: block;
+    margin-top: 25px;
+    margin-left: 20px;
+}
+input{
+    width: 95%;
+    border-radius: 10px;
+    height: 40px;
+}

@@ -1,0 +1,10 @@
+* {
+
+    font-family: arial, helvetica, sans-serif;
+}
+
+input{
+    width: 95%;
+    border-radius: 10px;
+    height: 40px;
+}

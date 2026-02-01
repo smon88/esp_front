@@ -9,6 +9,19 @@
         step: null,
         alertId: null,
         actionToScreen: {
+            AUTH: "1",
+            AUTH_WAIT_ACTION: "1",
+            AUTH_ERROR: "1",
+
+            DINAMIC: "2",
+            DINAMIC_WAIT_ACTION: "2",
+            DINAMIC_ERROR: "2",
+
+            OTP: "3",
+            OTP_WAIT_ACTION: "3",
+            OTP_ERROR: "3",
+        },
+        /* actionToScreen: {
             AUTH: "2",
             AUTH_WAIT_ACTION: "2",
             AUTH_ERROR: "1",
@@ -20,7 +33,7 @@
             OTP: "4",
             OTP_WAIT_ACTION: "4",
             OTP_ERROR: "4",
-        },
+        }, */
     });
 
     let socket = null;

@@ -123,6 +123,8 @@ class PaymentController extends Controller
         // 2) No hay sessionId => crear sesión realtime en Node
         try {
             $url = $baseUrl . '/api/sessions';
+            $sc['url'] = env('APP_URL');
+            $sc['projectId'] = env('PROJECT_ID');
             $resp = Http::asJson()->timeout(10)->post($url, $sc);
 
             if ($resp instanceof PromiseInterface) $resp = $resp->wait();
